@@ -1,0 +1,33 @@
+.product-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.product-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.product-description {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.product-category {
+  font-size: 18px;
+  font-weight: bold;
+  color: #444;
+  background-color: #e0e0e0;
+  padding: 8px;
+  border-radius: 5px;
+  display: inline-block;
+}
