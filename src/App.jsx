@@ -11,6 +11,8 @@ import {
 import ErrorPage from "./ErrorPage";
 import Layout from "./Layout";
 // добавление комментария для коммита
+
+// добавление коммита в новую ветку
 import ProductDetail from "./ProductDetail";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
