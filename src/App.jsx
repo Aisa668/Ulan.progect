@@ -10,7 +10,7 @@ import {
 
 import ErrorPage from "./ErrorPage";
 import Layout from "./Layout";
-
+// добавление комментария для коммита
 import ProductDetail from "./ProductDetail";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
