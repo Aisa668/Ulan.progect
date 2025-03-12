@@ -1,91 +1,99 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "./cartSlice";
+import { fetchProductById } from "./productsSlice";
+import { fetchCategories } from "./categoriesSlice";
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  CardMedia,
+  CircularProgress,
+} from "@mui/material";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const dispatch = useDispatch(); // Подключаем Redux dispatch
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  // Получаем данные из Redux
+  const {
+    selectedProduct: product,
+    loading,
+    error,
+  } = useSelector((state) => state.products);
+  const { list: categories } = useSelector((state) => state.categories);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await fetch(`http://localhost:7000/products/${id}`);
-        if (!response.ok) throw new Error("Ошибка загрузки товара");
-        const data = await response.json();
-        setProduct(data);
-      } catch (err) {
-        setError("Ошибка загрузки товара: " + err.message);
-      }
-    };
+    dispatch(fetchProductById(id)); // Загружаем товар
+    dispatch(fetchCategories()); // Загружаем категории (если их еще нет)
+  }, [dispatch, id]);
 
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("http://localhost:7000/category");
-        if (!response.ok) throw new Error("Ошибка загрузки категорий");
-        const data = await response.json();
-        setCategories(data);
-      } catch (err) {
-        setError("Ошибка загрузки категорий: " + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  if (loading) return <CircularProgress />;
+  if (error) return <Typography color="error">{error}</Typography>;
+  if (!product) return <Typography>Товар не найден</Typography>;
 
-    fetchProduct();
-    fetchCategories();
-  }, [id]);
+  // Проверяем, что categories - это массив, прежде чем вызывать find()
+  const currentCategory = Array.isArray(categories)
+    ? categories.find((el) => el.id === product?.categoryId)
+    : null;
 
-  if (loading) return <p>Загрузка...</p>;
-  if (error) return <p>{error}</p>;
-  if (!product) return <p>Товар не найден</p>;
-
-  // Поиск категории по ID товара
-  const currentCategory = categories.find((el) => el.id === product.categoryId);
-
-  // Функция для добавления товара в корзину
+  // Функция добавления товара в корзину
   const handleAddToCart = () => {
     dispatch(addToCart(product));
     navigate("/cart");
   };
 
   return (
-    <div>
-      <h1>{product.title}</h1>
-      <p>
-        <strong>Описание:</strong> {product.description}
-      </p>
-      <p>
-        <strong>Цена:</strong> {product.price} ₽
-      </p>
-      <p>
-        <strong>Количество:</strong> {product.quantity}
-      </p>
-      <p>
-        <strong>Категория:</strong>{" "}
-        {currentCategory ? currentCategory.title : "Неизвестно"}
-      </p>
-      {product.image && (
-        <img
-          src={product.image}
-          alt={product.title}
-          style={{ maxWidth: "300px" }}
-        />
-      )}
-
-      {/* Кнопка "Добавить в корзину" */}
-      <button
-        onClick={handleAddToCart}
-        style={{ marginTop: "20px", padding: "10px", cursor: "pointer" }}
+    <Box sx={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
+      <Card
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          gap: "20px",
+        }}
       >
-        Добавить в корзину
-      </button>
-    </div>
+        <CardMedia
+          component="img"
+          image={product.image || "https://via.placeholder.com/300"}
+          alt={product.title}
+          sx={{
+            maxWidth: { xs: "100%", md: "300px" },
+            margin: "auto",
+            objectFit: "contain",
+          }}
+        />
+        <CardContent sx={{ flex: 1 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            {product.title}
+          </Typography>
+          <Typography variant="body1" color="text.secondary" paragraph>
+            <strong>Описание:</strong> {product.description}
+          </Typography>
+          <Typography variant="h6" gutterBottom>
+            <strong>Цена:</strong> {product.price} ₽
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            <strong>Количество:</strong> {product.quantity}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            <strong>Категория:</strong>{" "}
+            {currentCategory ? currentCategory.title : "Неизвестно"}
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddToCart}
+            sx={{ marginTop: "20px" }}
+          >
+            Добавить в корзину
+          </Button>
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 

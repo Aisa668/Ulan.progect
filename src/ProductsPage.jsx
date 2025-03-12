@@ -2,7 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchProducts, deleteProduct } from "./productsSlice";
 import { Link } from "react-router-dom";
-import "./ProductsPage.css";
+import {
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  TextField,
+} from "@mui/material";
 
 const ProductsPage = ({ isAdmin }) => {
   const dispatch = useDispatch();
@@ -29,14 +37,16 @@ const ProductsPage = ({ isAdmin }) => {
   };
 
   return (
-    <div className="container">
+    <div className="container" style={{ padding: "20px" }}>
       <h1>{isAdmin ? "Все товары" : "Список товаров"}</h1>
 
-      <input
-        type="text"
-        placeholder="Поиск по названию товара"
+      <TextField
+        label="Поиск по названию товара"
+        variant="outlined"
+        fullWidth
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
+        style={{ marginBottom: "20px" }}
       />
 
       {loading ? (
@@ -44,22 +54,58 @@ const ProductsPage = ({ isAdmin }) => {
       ) : error ? (
         <p>{error}</p>
       ) : (
-        <ul>
+        <Grid container spacing={3}>
           {filteredProducts.map((product) => (
-            <li key={product.id}>
-              <h2>{product.title}</h2>
-              <p>{product.body}</p>
-              <Link to={`/products/${product.id}`}>
-                {isAdmin ? "Просмотр" : "Подробнее"}
-              </Link>
-              {isAdmin && (
-                <button onClick={() => handleDelete(product.id)}>
-                  Удалить
-                </button>
-              )}
-            </li>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+              <Card
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  alt={product.title}
+                  height="140"
+                  image={product.image || "https://via.placeholder.com/150"} // Подставьте изображение товара
+                />
+                <CardContent>
+                  <Typography variant="h6" component="div">
+                    {product.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ height: "80px", overflow: "hidden" }}
+                  >
+                    {product.body}
+                  </Typography>
+                </CardContent>
+
+                <div style={{ margin: "auto", padding: "10px" }}>
+                  <Link to={`/products/${product.id}`}>
+                    <Button variant="contained" color="primary" fullWidth>
+                      {isAdmin ? "Просмотр" : "Подробнее"}
+                    </Button>
+                  </Link>
+
+                  {isAdmin && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      fullWidth
+                      sx={{ marginTop: 1 }}
+                      onClick={() => handleDelete(product.id)}
+                    >
+                      Удалить
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            </Grid>
           ))}
-        </ul>
+        </Grid>
       )}
     </div>
   );

@@ -21,12 +21,15 @@ import Auth from "./Auth";
 import ProductsPage from "./ProductsPage";
 import PrivateRoute from "./PrivateRoute"; // Импортируем PrivateRoute
 import Cart from "./Cart";
+import "@fontsource/roboto";
+import { Navigate } from "react-router-dom";
 
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path="/" element={<Layout />}>
-        <Route index element={<Auth />} />
+        <Route index element={<Navigate to="/auth" replace />} />
+        <Route path="auth" element={<Auth />} />
 
         <Route path="cart" element={<Cart />} />
 

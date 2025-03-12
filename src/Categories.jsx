@@ -7,6 +7,21 @@ import {
   updateCategory,
   clearSuccessMessage,
 } from "./categoriesSlice";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Grid,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Snackbar,
+  Alert,
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const Categories = () => {
   const dispatch = useDispatch();
@@ -17,6 +32,9 @@ const Categories = () => {
   const [newCategory, setNewCategory] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
   const [editedName, setEditedName] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
   const userRole = localStorage.getItem("role");
   const isAdmin = userRole && userRole.toUpperCase() === "ADMIN";
@@ -28,6 +46,9 @@ const Categories = () => {
 
   useEffect(() => {
     if (successMessage) {
+      setSnackbarMessage(successMessage);
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
       setTimeout(() => {
         dispatch(clearSuccessMessage());
       }, 3000); // Очистка successMessage через 3 секунды
@@ -59,63 +80,109 @@ const Categories = () => {
   };
 
   return (
-    <div>
-      <h1>Категории</h1>
-      {error && <div style={{ color: "red" }}>{error}</div>}
-      {successMessage && <div style={{ color: "green" }}>{successMessage}</div>}
+    <Container maxWidth="md">
+      <Typography variant="h4" gutterBottom>
+        Категории
+      </Typography>
 
-      {isAdmin && (
-        <div>
-          <input
-            type="text"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            placeholder="Введите название категории"
-          />
-          <button onClick={handleAddCategory} disabled={loading}>
-            {loading ? "Добавление..." : "Добавить категорию"}
-          </button>
-        </div>
+      {error && (
+        <Typography variant="body1" color="error" mb={2}>
+          {error}
+        </Typography>
       )}
 
-      {loading && <div>Загрузка категорий...</div>}
+      {/* Добавление категории */}
+      {isAdmin && (
+        <Grid container spacing={2} mb={3}>
+          <Grid item xs={8}>
+            <TextField
+              label="Введите название категории"
+              fullWidth
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={handleAddCategory}
+              disabled={loading}
+            >
+              {loading ? "Добавление..." : "Добавить категорию"}
+            </Button>
+          </Grid>
+        </Grid>
+      )}
 
-      <ul>
+      {/* Список категорий */}
+      {loading && <Typography>Загрузка категорий...</Typography>}
+
+      <List>
         {items.map((category) => (
-          <li key={category.id}>
+          <ListItem key={category.id} divider>
             {editingCategory?.id === category.id ? (
               <>
-                <input
-                  type="text"
+                <TextField
                   value={editedName}
                   onChange={(e) => setEditedName(e.target.value)}
+                  size="small"
+                  fullWidth
                 />
-                <button onClick={handleSaveEdit} disabled={loading}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSaveEdit}
+                  disabled={loading}
+                  sx={{ marginLeft: 1 }}
+                >
                   Сохранить
-                </button>
+                </Button>
               </>
             ) : (
               <>
-                {category.name}
+                <ListItemText primary={category.name} />
                 {isAdmin && (
                   <>
-                    <button onClick={() => handleEditClick(category)}>
-                      Изменить
-                    </button>
-                    <button
+                    <IconButton
+                      onClick={() => handleEditClick(category)}
+                      color="primary"
+                      aria-label="edit"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
                       onClick={() => handleDeleteCategory(category.id)}
+                      color="secondary"
+                      aria-label="delete"
                       disabled={loading}
                     >
-                      Удалить
-                    </button>
+                      <DeleteIcon />
+                    </IconButton>
                   </>
                 )}
               </>
             )}
-          </li>
+          </ListItem>
         ))}
-      </ul>
-    </div>
+      </List>
+
+      {/* Snackbar для сообщений */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
 };
 

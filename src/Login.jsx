@@ -1,11 +1,22 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // Для редиректа
-import { jwtDecode } from "jwt-decode";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "./authSlice"; // Импортируем асинхронный экшен
+import { jwtDecode } from "jwt-decode"; // Для декодирования JWT токена
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
+  const dispatch = useDispatch();
   const navigate = useNavigate(); // Хук для редиректа
+
+  // Получаем данные из Redux
+  const {
+    loading,
+    error: reduxError,
+    token,
+    role,
+  } = useSelector((state) => state.auth);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,52 +28,37 @@ const Login = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:7000/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      // Отправляем данные в Redux для логина
+      const actionResult = await dispatch(loginUser(formData));
 
-      if (!response.ok) {
-        throw new Error("Ошибка авторизации");
-      }
+      if (loginUser.fulfilled.match(actionResult)) {
+        console.log("Action Result:", actionResult.payload);
 
-      const data = await response.json();
-      console.log("Ответ от сервера:", data);
+        // Декодируем токен, чтобы получить роль
+        const decodedToken = jwtDecode(actionResult.payload.token);
+        const role = decodedToken.role; // Извлекаем роль из токена
 
-      // Сохраняем токен
-      localStorage.setItem("token", data.token);
+        // Сохраняем токен и роль в localStorage
+        localStorage.setItem("token", actionResult.payload.token);
+        localStorage.setItem("role", role); // Сохраняем роль
 
-      // Если роль есть в ответе сервера, сохраняем ее
-      if (data.role) {
-        localStorage.setItem("role", data.role);
-        console.log("Сохраненная роль из ответа сервера:", data.role);
-      } else {
-        // Если роль отсутствует в ответе, пробуем достать из декодированного токена
-        const decodedToken = jwtDecode(data.token);
-        if (decodedToken.role) {
-          localStorage.setItem("role", decodedToken.role);
-          console.log("Сохраненная роль из токена:", decodedToken.role);
+        // Редиректим пользователя в зависимости от роли
+        if (role === "ADMIN") {
+          navigate("/admin/products"); // Админская страница
         } else {
-          console.log("Роль не найдена в токене");
+          navigate("/products"); // Страница товаров для обычного пользователя
         }
-      }
-
-      // Редиректим пользователя в зависимости от роли
-      const role = data.role || jwtDecode(data.token).role;
-      if (role === "ADMIN") {
-        navigate("/admin/products"); // Админская страница
       } else {
-        navigate("/products"); // Страница товаров для обычного пользователя
+        setError(actionResult.payload || "Ошибка авторизации");
       }
-
-      console.log("Успешная авторизация:", data);
     } catch (error) {
-      setError(error.message);
+      setError("Ошибка при авторизации");
     }
   };
+
+  if (loading) {
+    return <div>Загрузка...</div>; // Индикатор загрузки
+  }
 
   return (
     <div>
@@ -90,8 +86,11 @@ const Login = () => {
             required
           />
         </div>
-        <button type="submit">Войти</button>
+        <button type="submit" disabled={loading}>
+          Войти
+        </button>
         {error && <p style={{ color: "red" }}>{error}</p>}
+        {reduxError && <p style={{ color: "red" }}>{reduxError}</p>}
       </form>
     </div>
   );

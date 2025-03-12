@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import ProductForm from "./ProductForm";
 import { addProduct } from "./productsSlice"; // Импортируем action
+import { Container, Grid, TextField, Button, Typography } from "@mui/material";
 
 const AddProduct = () => {
   const dispatch = useDispatch();
@@ -60,19 +60,112 @@ const AddProduct = () => {
   };
 
   return (
-    <div>
-      <h1>Добавить товар</h1>
+    <Container maxWidth="sm">
+      <div>
+        <Typography variant="h4" gutterBottom>
+          Добавить товар
+        </Typography>
 
-      <ProductForm
-        productData={formData}
-        onInputChange={handleInputChange}
-        onSubmit={handleSubmit}
-      />
+        {/* Форма для добавления товара */}
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField
+                label="Название товара"
+                name="title"
+                fullWidth
+                value={formData.title}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
 
-      {loading && <p>Добавление...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && <p style={{ color: "green" }}>{success}</p>}
-    </div>
+            <Grid item xs={12}>
+              <TextField
+                label="Описание товара"
+                name="description"
+                fullWidth
+                multiline
+                rows={4}
+                value={formData.description}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Категория"
+                name="categoryId"
+                fullWidth
+                type="number"
+                value={formData.categoryId}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Цена"
+                name="price"
+                fullWidth
+                type="number"
+                value={formData.price}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                label="Ссылка на изображение"
+                name="image"
+                fullWidth
+                value={formData.image}
+                onChange={handleInputChange}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Количество"
+                name="quantity"
+                fullWidth
+                type="number"
+                value={formData.quantity}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                disabled={loading}
+              >
+                {loading ? "Добавление..." : "Добавить товар"}
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+
+        {/* Статусы */}
+        {error && (
+          <Typography color="error" variant="body2" mt={2}>
+            Ошибка: {error}
+          </Typography>
+        )}
+        {success && (
+          <Typography color="success.main" variant="body2" mt={2}>
+            {success}
+          </Typography>
+        )}
+      </div>
+    </Container>
   );
 };
 
