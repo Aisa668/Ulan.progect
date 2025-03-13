@@ -1,7 +1,7 @@
 import "./App.css";
 import { store } from "./store";
-import { Provider } from "react-redux"; // Импортируем Provider
-import { RouterProvider } from "react-router-dom";
+import { Provider, useSelector } from "react-redux";
+import { RouterProvider, Navigate } from "react-router-dom";
 import {
   Route,
   createBrowserRouter,
@@ -10,44 +10,47 @@ import {
 
 import ErrorPage from "./ErrorPage";
 import Layout from "./Layout";
-// добавление комментария для коммита
-
-// добавление коммита в новую ветку
 import ProductDetail from "./ProductDetail";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
 import Categories from "./Categories";
 import Auth from "./Auth";
 import ProductsPage from "./ProductsPage";
-import PrivateRoute from "./PrivateRoute"; // Импортируем PrivateRoute
+import PrivateRoute from "./PrivateRoute";
 import Cart from "./Cart";
 import "@fontsource/roboto";
-import { Navigate } from "react-router-dom";
 
-function App() {
+function AppContent() {
+  const token = useSelector((state) => state.auth.token);
+  const role = useSelector((state) => state.auth.role);
+
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path="/" element={<Layout />}>
-        <Route index element={<Navigate to="/auth" replace />} />
+        <Route
+          index
+          element={
+            token ? (
+              <Navigate
+                to={role === "ADMIN" ? "/admin/products" : "/products"}
+                replace
+              />
+            ) : (
+              <Navigate to="/auth" replace />
+            )
+          }
+        />
         <Route path="auth" element={<Auth />} />
-
         <Route path="cart" element={<Cart />} />
 
         {/* Приватные маршруты для USER и ADMIN */}
         <Route element={<PrivateRoute allowedRoles={["USER", "ADMIN"]} />}>
           <Route path="products" element={<ProductsPage isAdmin={false} />} />
-
           <Route path="products/:id" element={<ProductDetail />} />
-          <Route element={<PrivateRoute allowedRoles={["USER", "ADMIN"]} />}>
-            <Route
-              path="categories"
-              element={
-                <Categories
-                  isAdmin={localStorage.getItem("role") === "ADMIN"}
-                />
-              }
-            />
-          </Route>
+          <Route
+            path="categories"
+            element={<Categories isAdmin={role === "ADMIN"} />}
+          />
         </Route>
 
         {/* Приватные маршруты только для ADMIN */}
@@ -65,11 +68,13 @@ function App() {
     )
   );
 
+  return <RouterProvider router={router} />;
+}
+
+function App() {
   return (
     <Provider store={store}>
-      {" "}
-      {/* Оборачиваем в Redux Provider */}
-      <RouterProvider router={router} />
+      <AppContent />
     </Provider>
   );
 }

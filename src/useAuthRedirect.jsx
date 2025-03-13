@@ -1,29 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const AuthRedirect = () => {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const token = useSelector((state) => state.auth.token);
+  const role = useSelector((state) => state.auth.role);
 
   useEffect(() => {
-    // Проверяем данные из localStorage только один раз при монтировании компонента
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-
-    // Если токен и роль существуют, обновляем состояние и выполняем редирект
     if (token && role) {
-      setIsAuthenticated(true);
-      if (role === "USER") {
-        navigate("/products"); // Страница списка товаров для USER
-      } else if (role === "ADMIN") {
-        navigate("/admin/products"); // Админская страница всех товаров
-      }
+      console.log(
+        "✅ Token and role found, redirecting to:",
+        role === "ADMIN" ? "/admin/products" : "/products"
+      );
+      navigate(role === "ADMIN" ? "/admin/products" : "/products");
     } else {
-      navigate("/auth"); // Перенаправляем на страницу входа/регистрации
+      console.log("🚨 No token or role, redirecting to /auth");
+      navigate("/auth");
     }
-  }, [navigate]); // Срабатывает при монтировании компонента
+  }, [token, role, navigate]);
 
-  return null; // Не нужно рендерить что-то в компоненте
+  return null;
 };
 
 export default AuthRedirect;

@@ -47,12 +47,13 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+// Слайс для авторизации
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: null,
-    token: null,
-    role: null, // Роль пользователя
+    token: localStorage.getItem("token") || null, // Инициализация токена из localStorage
+    role: localStorage.getItem("role") || null, // Инициализация роли из localStorage
     loading: false,
     error: null,
   },
@@ -61,6 +62,15 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.role = null; // Очистить роль при выходе
+      localStorage.removeItem("token"); // Удалить токен из localStorage
+      localStorage.removeItem("role"); // Удалить роль из localStorage
+    },
+    setAuthData: (state, action) => {
+      // Сохраняем данные в Redux и localStorage
+      state.token = action.payload.token;
+      state.role = action.payload.role;
+      localStorage.setItem("token", action.payload.token); // Сохраняем токен в localStorage
+      localStorage.setItem("role", action.payload.role); // Сохраняем роль в localStorage
     },
   },
   extraReducers: (builder) => {
@@ -72,12 +82,11 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
-
-        // Декодируем токен и извлекаем роль
         const decodedToken = jwtDecode(action.payload.token);
-        console.log("Decoded Token:", decodedToken);
         state.role = decodedToken.role; // Сохраняем роль из токена
+        // Сохраняем в localStorage
+        localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("role", decodedToken.role);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -92,12 +101,11 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
-
-        // Декодируем токен и извлекаем роль
         const decodedToken = jwtDecode(action.payload.token);
-        console.log("Decoded Token:", decodedToken);
         state.role = decodedToken.role; // Сохраняем роль из токена
+        // Сохраняем в localStorage
+        localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("role", decodedToken.role);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -106,6 +114,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, setAuthData } = authSlice.actions;
 
 export default authSlice.reducer;
