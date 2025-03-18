@@ -77,7 +77,7 @@ export const updateProduct = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:7000/products/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -94,6 +94,13 @@ export const updateProduct = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.message);
     }
+  }
+);
+export const fetchCategories = createAsyncThunk(
+  "categories/fetchCategories",
+  async () => {
+    const response = await fetch("http://localhost:7000/category");
+    return response.json();
   }
 );
 
@@ -131,6 +138,17 @@ const productsSlice = createSlice({
         state.selectedProduct = action.payload;
       })
       .addCase(fetchProductById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchCategories.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.loading = false;
+        state.categories = action.payload;
+      })
+      .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

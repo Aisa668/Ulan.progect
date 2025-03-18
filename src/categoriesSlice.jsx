@@ -4,6 +4,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 export const fetchCategories = createAsyncThunk(
   "categories/fetchCategories",
   async (_, { rejectWithValue }) => {
+    console.log("📡 Отправляем запрос на сервер...");
     try {
       const response = await fetch("http://localhost:7000/category");
       if (!response.ok) {
@@ -132,6 +133,7 @@ const categoriesSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
+        console.log("✅ Категории загружены:", action.payload);
         state.loading = false;
         state.items = action.payload;
       })

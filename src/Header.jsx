@@ -1,15 +1,14 @@
-import { AppBar, IconButton, Toolbar, Box, Button } from "@mui/material";
+import { AppBar, Toolbar, Box, Button } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom"; // Импортируем Link из react-router-dom
 import { useNavigate } from "react-router-dom";
-
+import { logout } from "./authSlice";
+import { useDispatch } from "react-redux";
 const Header = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleLogout = () => {
-    console.log("Удаляю токен...");
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    // Редирект на страницу входа после выхода
+    dispatch(logout());
     navigate("/auth", { replace: true });
   };
 

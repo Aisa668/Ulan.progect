@@ -4,11 +4,15 @@ import { loginUser, registerUser } from "./authSlice"; // Импортируем
 import Login from "./Login";
 import Registration from "./Registration";
 import { jwtDecode } from "jwt-decode"; // Импортируем jwtDecode
+import { Button, CircularProgress } from "@mui/material"; // Импортируем компоненты MUI
+import { useNavigate } from "react-router-dom";
+import { setAuthData } from "./authSlice";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   const toggleForm = () => {
     setIsLogin(!isLogin); // Переключение между формами
@@ -21,8 +25,14 @@ const Auth = () => {
 
       if (token) {
         const decodedToken = jwtDecode(token); // Декодируем токен
+        const userRole = decodedToken.role;
+
         localStorage.setItem("token", token); // Сохраняем токен
         localStorage.setItem("role", decodedToken.role); // Сохраняем роль
+
+        dispatch(setAuthData({ token, role: userRole })); // ✅ Используем setAuthData
+
+        navigate(userRole === "ADMIN" ? "admin/products" : "/products");
       }
     } catch (error) {
       console.error("Ошибка при входе:", error);
@@ -37,8 +47,14 @@ const Auth = () => {
 
       if (token) {
         const decodedToken = jwtDecode(token); // Декодируем токен
+        const userRole = decodedToken.role;
+
         localStorage.setItem("token", token); // Сохраняем токен
         localStorage.setItem("role", decodedToken.role); // Сохраняем роль
+
+        dispatch(setAuthData({ token, role: userRole })); // ✅ Записываем в Redux
+
+        navigate(userRole === "ADMIN" ? "/admin/products" : "/products"); // ✅ Редирект после регистрации
       }
     } catch (error) {
       console.error("Ошибка при регистрации:", error);
@@ -48,27 +64,29 @@ const Auth = () => {
   return (
     <div>
       <h2>{isLogin ? "Авторизация" : "Регистрация"}</h2>
-
       {isLogin ? (
         <Login onSubmit={handleLogin} /> // Форма логина
       ) : (
         <Registration onSubmit={handleRegistration} /> // Форма регистрации
       )}
-
       <div>
         {isLogin ? (
           <p>
             Нет учетной записи?{" "}
-            <button onClick={toggleForm}>Зарегистрироваться</button>
+            <Button variant="text" onClick={toggleForm}>
+              Зарегистрироваться
+            </Button>
           </p>
         ) : (
           <p>
-            Уже есть учетная запись? <button onClick={toggleForm}>Войти</button>
+            Уже есть учетная запись?{" "}
+            <Button variant="text" onClick={toggleForm}>
+              Войти
+            </Button>
           </p>
         )}
       </div>
-
-      {loading && <p>Загрузка...</p>}
+      {loading && <CircularProgress />} {/* Показать индикатор загрузки */}
       {error && <p>{error}</p>}
     </div>
   );

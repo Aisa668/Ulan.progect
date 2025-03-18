@@ -83,6 +83,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         const decodedToken = jwtDecode(action.payload.token);
+        state.token = action.payload.token;
         state.role = decodedToken.role; // Сохраняем роль из токена
         // Сохраняем в localStorage
         localStorage.setItem("token", action.payload.token);

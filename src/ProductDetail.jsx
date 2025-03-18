@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "./cartSlice";
 import { fetchProductById } from "./productsSlice";
-import { fetchCategories } from "./categoriesSlice";
 import {
   Box,
   Typography,
@@ -25,21 +24,14 @@ const ProductDetail = () => {
     loading,
     error,
   } = useSelector((state) => state.products);
-  const { list: categories } = useSelector((state) => state.categories);
 
   useEffect(() => {
     dispatch(fetchProductById(id)); // Загружаем товар
-    dispatch(fetchCategories()); // Загружаем категории (если их еще нет)
   }, [dispatch, id]);
 
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">{error}</Typography>;
   if (!product) return <Typography>Товар не найден</Typography>;
-
-  // Проверяем, что categories - это массив, прежде чем вызывать find()
-  const currentCategory = Array.isArray(categories)
-    ? categories.find((el) => el.id === product?.categoryId)
-    : null;
 
   // Функция добавления товара в корзину
   const handleAddToCart = () => {
@@ -70,6 +62,7 @@ const ProductDetail = () => {
           <Typography variant="h4" component="h1" gutterBottom>
             {product.title}
           </Typography>
+
           <Typography variant="body1" color="text.secondary" paragraph>
             <strong>Описание:</strong> {product.description}
           </Typography>
@@ -79,10 +72,7 @@ const ProductDetail = () => {
           <Typography variant="body1" gutterBottom>
             <strong>Количество:</strong> {product.quantity}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Категория:</strong>{" "}
-            {currentCategory ? currentCategory.title : "Неизвестно"}
-          </Typography>
+
           <Button
             variant="contained"
             color="primary"

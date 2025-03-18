@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const ProductForm = ({ productId }) => {
   const [categories, setCategories] = useState([]);
@@ -9,8 +10,20 @@ const ProductForm = ({ productId }) => {
   const [productImage, setProductImage] = useState(""); // Изображение товара
   const [productQuantity, setProductQuantity] = useState(""); // Количество товара
   const [selectedCategory, setSelectedCategory] = useState(""); // Категория товара
+  const [roleError, setRoleError] = useState(""); // Ошибка доступа
+  const navigate = useNavigate();
   const userRole = localStorage.getItem("role");
-  const isAdmin = userRole && userRole.toUpperCase() === "ADMIN";
+  const isAdmin = userRole && userRole.toUpperCase() === "ADMIN"; // Проверка роли администратора
+
+  // Если пользователь не админ, перенаправляем на главную
+  useEffect(() => {
+    if (!isAdmin) {
+      setRoleError(
+        "Доступ запрещен. Только администратор может редактировать товары."
+      );
+      setTimeout(() => navigate("/"), 3000); // Перенаправляем через 3 секунды
+    }
+  }, [isAdmin, navigate]);
 
   // Загрузка категорий
   useEffect(() => {
@@ -43,10 +56,10 @@ const ProductForm = ({ productId }) => {
           const data = await response.json();
           setProductName(data.name);
           setProductPrice(data.price);
-          setProductDescription(data.description || ""); // Добавляем описание
-          setProductImage(data.image || ""); // Добавляем изображение
-          setProductQuantity(data.quantity || ""); // Добавляем количество
-          setSelectedCategory(data.categoryId); // предполагаем, что categoryId — это id категории
+          setProductDescription(data.description || "");
+          setProductImage(data.image || "");
+          setProductQuantity(data.quantity || "");
+          setSelectedCategory(data.categoryId);
         } catch (err) {
           setError("Error loading product: " + err.message);
         }
@@ -80,9 +93,9 @@ const ProductForm = ({ productId }) => {
           title: productName,
           description: productDescription,
           image: productImage,
-          categoryId: Number(selectedCategory), // Преобразуем в число
-          price: Number(productPrice), // Преобразуем в число
-          quantity: Number(productQuantity), // Преобразуем в число
+          categoryId: Number(selectedCategory),
+          price: Number(productPrice),
+          quantity: Number(productQuantity),
         }),
       });
 
@@ -97,6 +110,11 @@ const ProductForm = ({ productId }) => {
       setError("Ошибка: " + err.message);
     }
   };
+
+  // Если роль не admin, показываем сообщение о доступе
+  if (roleError) {
+    return <div style={{ color: "red" }}>{roleError}</div>;
+  }
 
   return (
     <div>
@@ -118,7 +136,7 @@ const ProductForm = ({ productId }) => {
           type="number"
           id="productPrice"
           value={productPrice}
-          onChange={(e) => setProductPrice(Number(e.target.value))} // Преобразуем в число сразу
+          onChange={(e) => setProductPrice(Number(e.target.value))}
           required
         />
 
@@ -142,16 +160,15 @@ const ProductForm = ({ productId }) => {
           type="number"
           id="productQuantity"
           value={productQuantity}
-          onChange={(e) => setProductQuantity(Number(e.target.value))} // Преобразуем в число сразу
+          onChange={(e) => setProductQuantity(Number(e.target.value))}
           required
         />
 
         <label htmlFor="productCategory">Категория товара</label>
-
         <select
           id="productCategory"
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(Number(e.target.value))} // Преобразуем в число сразу
+          onChange={(e) => setSelectedCategory(Number(e.target.value))}
           required
         >
           <option value="">Выберите категорию</option>
